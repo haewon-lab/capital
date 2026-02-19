@@ -3,45 +3,51 @@ package haewon.capital
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import haewon.capital.ui.theme.CapitalTheme
-
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import dagger.hilt.android.AndroidEntryPoint
+import haewon.capital.navigation.Screen
+import haewon.capital.presentation.continent.ContinentScreen
+import haewon.capital.presentation.detail.DetailScreen
+import haewon.capital.presentation.list.CountryListScreen
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            CapitalTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+            val navController = rememberNavController()
+
+            NavHost(navController = navController, startDestination = Screen.Continent.route) {
+
+                composable(Screen.Continent.route) {
+                    ContinentScreen(
+                        onContinentClick = { continent ->
+                            navController.navigate(Screen.CountryList.createRoute(continent))
+                        }
                     )
+                }
+
+                composable(
+                    route = Screen.CountryList.route,
+                    arguments = listOf(navArgument("continent") { type = NavType.StringType })
+                ) {
+                    CountryListScreen(
+                        onContinentClick = { code ->
+                            navController.navigate(Screen.Detail.createRoute(code))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Screen.Detail.route,
+                    arguments = listOf(navArgument("countryCode") { type = NavType.StringType })
+                ) {
+                    DetailScreen()
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CapitalTheme {
-        Greeting("Android")
     }
 }
